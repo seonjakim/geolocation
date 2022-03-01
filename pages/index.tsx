@@ -5,30 +5,33 @@ import Header from '../components/Header'
 import List from '../components/List'
 import Map from '../components/Map'
 import PlaceDetail from '../components/PlaceDetail'
-
-const places = [
-  {
-    name: 'sample place',
-  },
-  {
-    name: 'sample place',
-  },
-  {
-    name: 'sample place',
-  },
-  {
-    name: 'sample place',
-  },
-  {
-    name: 'sample place',
-  },
-]
+import { getPlacesData } from './api'
 
 const Home: NextPage = () => {
+  const [places, setPlaces] = React.useState([])
   const [coordinates, setCoordinates] = React.useState({ lat: 0, lng: 0 })
+  const [bounds, setBounds] = React.useState(null)
   const [type, setType] = React.useState('restaurants')
   const [ratings, setRatings] = React.useState()
   const [isLoading, setIsLoading] = React.useState(false)
+
+  React.useEffect(() => {
+    // get the users current location
+
+    navigator.geolocation.getCurrentPosition(
+      ({ coords: { latitude, longitude } }) => {
+        setCoordinates({ lat: latitude, lng: longitude })
+      }
+    )
+  }, [coordinates, bounds])
+
+  React.useEffect(() => {
+    setIsLoading(true)
+    getPlacesData(bounds?.sw, bounds?.ne).then((data) => {
+      console.log(data)
+      setPlaces(data), setIsLoading(false)
+    })
+  }, [])
 
   return (
     <Flex
@@ -44,7 +47,11 @@ const Home: NextPage = () => {
         setCoordinates={setCoordinates}
       />
       <List places={places} isLoading={isLoading} />
-      <Map coordinates={coordinates} setCoordinates={setCoordinates} />
+      <Map
+        coordinates={coordinates}
+        setCoordinates={setCoordinates}
+        setBounds={setBounds}
+      />
     </Flex>
   )
 }
